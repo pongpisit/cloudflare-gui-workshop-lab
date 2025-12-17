@@ -1,309 +1,830 @@
-# Cloudflare GUI Lab: Workers/Pages + DNS Security (Browser DoH)
+# Cloudflare GUI Workshop Lab
 
-This lab is designed for a **4-hour** hands-on session and follows a **GUI-only** approach:
+**อบรมเชิงปฏิบัติการ: การใช้งาน Cloudflare Workers/Pages และ DNS Security ผ่าน Dashboard**
 
-- Workers: create, edit, deploy, variables, logs — **Cloudflare Dashboard only**
-- Pages: deploy a static site — **Cloudflare Dashboard only**
-- Zero Trust: **DNS Security only**, tested via **Browser Secure DNS (DoH)** (no WARP, no SWG, no AV)
-
-> Video recording is allowed. Do not record or screenshot secret values.
-
----
-
-## Prerequisites
-
-- A Cloudflare account (free is OK)
-- A web browser (Chrome / Edge / Firefox recommended)
-- Stable internet access to:
-  - https://dash.cloudflare.com/
-  - https://one.dash.cloudflare.com/
-
-Optional (recommended for the Pages lab via GitHub integration):
-
-- A GitHub account
+| รายละเอียด | ค่า |
+|------------|-----|
+| ระยะเวลา | 4 ชั่วโมง |
+| รูปแบบ | GUI-only (ไม่ต้องติดตั้ง CLI) |
+| ระดับ | เริ่มต้น - กลาง |
+| ภาษา | ไทย / English |
 
 ---
 
-## Time plan (4 hours)
+## 📋 สารบัญ
 
-- 0:00–0:15 Overview + access check
-- 0:15–1:30 Workers (Hello World, edit, deploy, variables, logs)
-- 1:30–2:00 Pages (deploy static HTML)
-- 2:00–2:10 Break
-- 2:10–3:50 Zero Trust DNS Security via Browser DoH (policies + test domains + logs)
-- 3:50–4:00 Q&A + cleanup
-
----
-
-## Part A — Workers (GUI-only)
-
-### A1) Navigate to Workers & Pages
-
-1. Open Cloudflare Dashboard: https://dash.cloudflare.com/
-2. In the left navigation, open **Workers & Pages**.
-
-Verify:
-
-- You can see entry points for **Workers** and **Pages**.
+- [ข้อกำหนดเบื้องต้น](#ข้อกำหนดเบื้องต้น)
+- [ตารางเวลา](#ตารางเวลา)
+- [Part A: Cloudflare Workers](#part-a--cloudflare-workers-gui-only)
+- [Part B: Cloudflare Pages](#part-b--cloudflare-pages-gui-only)
+- [Part C: Zero Trust DNS Security](#part-c--zero-trust-dns-security-ผ่าน-browser-doh)
+- [การแก้ไขปัญหาเบื้องต้น](#การแก้ไขปัญหาเบื้องต้น)
 
 ---
 
-### A2) Create and deploy a new Worker (Hello World)
+## ข้อกำหนดเบื้องต้น
 
-1. Go to **Workers & Pages**
-2. Create a **new Worker** (use the default Hello World template)
-3. Deploy
+### สิ่งที่ต้องเตรียมก่อนเริ่มอบรม
 
-Verify:
+| รายการ | รายละเอียด | จำเป็น |
+|--------|------------|--------|
+| **Cloudflare Account** | สมัครฟรีที่ https://dash.cloudflare.com/sign-up | ✅ ต้องมี |
+| **Web Browser** | Chrome, Edge, หรือ Firefox (เวอร์ชันล่าสุด) | ✅ ต้องมี |
+| **อินเทอร์เน็ต** | เสถียร, เข้าถึง `*.cloudflare.com` ได้ | ✅ ต้องมี |
+| **GitHub Account** | สำหรับ deploy Pages ผ่าน GitHub | ⭐ แนะนำ |
 
-- The Worker has a public `*.workers.dev` URL.
-- Visiting the URL returns a response.
+### ตรวจสอบการเข้าถึง (ทำก่อนเริ่มอบรม)
 
-Rollback:
+1. เปิด https://dash.cloudflare.com/ → ต้อง login ได้
+2. เปิด https://one.dash.cloudflare.com/ → ต้องเห็น Zero Trust Dashboard
 
-- Delete the Worker if it was created only for the lab.
+> ⚠️ **หมายเหตุ:** ถ้าเข้าไม่ได้ ให้แจ้งวิทยากรก่อนเริ่มอบรม
 
 ---
 
-### A3) Edit the Worker to return JSON (copy/paste)
+## ตารางเวลา
 
-In the Worker editor, replace the code with the snippet below and deploy.
+| เวลา | หัวข้อ | รายละเอียด |
+|------|--------|------------|
+| 0:00 – 0:15 | เปิดการอบรม | แนะนำตัว, ตรวจสอบการเข้าถึง |
+| 0:15 – 1:30 | **Part A: Workers** | สร้าง, แก้ไข, deploy, variables, logs |
+| 1:30 – 2:00 | **Part B: Pages** | Deploy เว็บ static ผ่าน Dashboard |
+| 2:00 – 2:10 | พักเบรก | ☕ |
+| 2:10 – 3:50 | **Part C: DNS Security** | สร้าง policy, ตั้งค่า DoH, ทดสอบ, ดู logs |
+| 3:50 – 4:00 | Q&A + สรุป | ถาม-ตอบ, cleanup |
 
-```js
+---
+
+## Part A — Cloudflare Workers (GUI-only)
+
+### A1) เข้าสู่หน้า Workers & Pages
+
+**เป้าหมาย:** เข้าถึงหน้าจัดการ Workers และ Pages บน Cloudflare Dashboard
+
+#### ขั้นตอน:
+
+1. เปิด browser แล้วไปที่:
+   ```
+   https://dash.cloudflare.com/
+   ```
+
+2. Login ด้วย email และ password ของ Cloudflare account
+
+3. หลังจาก login สำเร็จ จะเห็นหน้า Dashboard หลัก
+
+4. ที่ **แถบเมนูด้านซ้าย** ให้คลิกที่ **"Workers & Pages"**
+
+   ```
+   📍 ตำแหน่ง: เมนูด้านซ้าย > Workers & Pages
+   ```
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็นหน้า "Workers & Pages" overview
+- [ ] เห็นปุ่ม "Create" หรือ "Create application"
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: หน้า Workers & Pages overview พร้อมปุ่ม Create]
+```
+
+---
+
+### A2) สร้าง Worker ใหม่ (Hello World)
+
+**เป้าหมาย:** สร้าง Worker แรกและ deploy ให้ใช้งานได้จริง
+
+#### ขั้นตอน:
+
+1. ที่หน้า Workers & Pages คลิกปุ่ม **"Create"** (หรือ "Create application")
+
+2. เลือก **"Create Worker"**
+
+3. ตั้งชื่อ Worker:
+   - **Name:** `my-first-worker` (หรือชื่อที่ต้องการ)
+   
+   > 💡 ชื่อนี้จะเป็นส่วนหนึ่งของ URL: `my-first-worker.xxx.workers.dev`
+
+4. คลิก **"Deploy"** (ใช้ template Hello World ที่ระบบให้มา)
+
+5. รอสักครู่จนกว่าจะเห็นข้อความ "Success" หรือ "Deployed"
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็น URL ของ Worker เช่น `https://my-first-worker.xxx.workers.dev`
+- [ ] คลิก URL แล้วเห็นข้อความ "Hello World!" หรือคล้ายกัน
+
+#### 🧪 ทดสอบ:
+
+1. คลิกที่ URL ของ Worker (หรือ copy ไปวางใน browser tab ใหม่)
+2. ควรเห็นข้อความตอบกลับจาก Worker
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: หน้า Worker overview หลัง deploy สำเร็จ พร้อม URL]
+```
+
+#### 🔄 Rollback (ถ้าต้องการลบ):
+
+1. ไปที่ Workers & Pages
+2. คลิกที่ชื่อ Worker
+3. ไปที่ Settings > Delete
+4. พิมพ์ชื่อ Worker เพื่อยืนยัน แล้วคลิก Delete
+
+---
+
+### A3) แก้ไขโค้ด Worker ให้ return JSON
+
+**เป้าหมาย:** เรียนรู้การแก้ไขโค้ดและ deploy ใหม่ผ่าน Dashboard
+
+#### ขั้นตอน:
+
+1. ที่หน้า Worker ของคุณ คลิกแท็บ **"Code"** (หรือ "Edit code")
+
+2. จะเห็น code editor ในหน้าเว็บ
+
+3. **ลบโค้ดเดิมทั้งหมด** แล้ว **copy โค้ดด้านล่างนี้ไปวาง:**
+
+```javascript
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // ถ้าเข้า path /api/hello จะ return JSON
     if (url.pathname === '/api/hello') {
       return Response.json({
         ok: true,
         message: 'Hello from Cloudflare Workers (GUI deploy)!',
         environment: env.ENVIRONMENT ?? 'not-set',
+        timestamp: new Date().toISOString(),
       });
     }
 
-    return new Response('Worker is running. Try /api/hello', {
+    // path อื่นๆ จะ return ข้อความธรรมดา
+    return new Response('Worker is running. Try visiting /api/hello', {
       headers: { 'content-type': 'text/plain; charset=utf-8' },
     });
   },
 };
 ```
 
-Verify:
+4. คลิกปุ่ม **"Save and deploy"** (หรือ "Deploy")
 
-- Visiting `/api/hello` returns JSON.
+5. รอจนกว่าจะเห็นข้อความ success
 
-Rollback:
+#### ✅ ตรวจสอบความสำเร็จ:
 
-- Revert code in the editor to the previous saved version.
+- [ ] Deploy สำเร็จไม่มี error
+- [ ] เข้า `https://your-worker.xxx.workers.dev/` เห็นข้อความ "Worker is running..."
+- [ ] เข้า `https://your-worker.xxx.workers.dev/api/hello` เห็น JSON response
 
----
+#### 🧪 ทดสอบ:
 
-### A4) Add a non-secret variable (GUI)
+1. เปิด tab ใหม่ ไปที่ URL ของ Worker + `/api/hello`
+   ```
+   https://my-first-worker.xxx.workers.dev/api/hello
+   ```
 
-1. Open your Worker settings in the dashboard.
-2. Add a **variable**:
-   - Key: `ENVIRONMENT`
-   - Value: `demo`
-3. Save and redeploy if required.
+2. ควรเห็น JSON แบบนี้:
+   ```json
+   {
+     "ok": true,
+     "message": "Hello from Cloudflare Workers (GUI deploy)!",
+     "environment": "not-set",
+     "timestamp": "2025-02-05T10:30:00.000Z"
+   }
+   ```
 
-Verify:
-
-- `/api/hello` now returns `environment: "demo"`.
-
-Rollback:
-
-- Remove the variable and redeploy if required.
-
----
-
-### A5) View Logs / Observability (GUI)
-
-1. Open the Worker.
-2. Go to **Logs / Observability**.
-3. Trigger a few requests:
-   - `/`
-   - `/api/hello`
-
-Verify:
-
-- Logs show recent requests.
-
----
-
-## Part B — Pages (GUI-only)
-
-This lab includes a tiny static site at:
-
-- `pages-site/index.html`
-
-You can deploy it in one of two ways.
-
-### Option 1 (recommended): Deploy Pages from GitHub
-
-1. Fork this repository to your GitHub account.
-2. In Cloudflare Dashboard, go to **Workers & Pages** > **Pages**.
-3. Create a new Pages project and connect GitHub.
-4. Select your forked repo.
-5. Configure build settings:
-   - Framework preset: **None** (or “Static HTML” if shown)
-   - Build command: *(leave empty)*
-   - Build output directory: `pages-site`
-6. Deploy.
-
-Verify:
-
-- You get a `*.pages.dev` URL.
-- The page loads and shows the demo content.
-
-Rollback:
-
-- Delete the Pages project if it was demo-only.
-
-### Option 2: Deploy Pages by direct upload
-
-If your environment does not allow GitHub integration:
-
-1. Download the `index.html` file locally.
-2. Create a Pages project and use direct upload.
-3. Upload `index.html`.
-
-Verify:
-
-- The site loads successfully.
-
----
-
-## Part C — Zero Trust (DNS Security only) via Browser Secure DNS (DoH)
-
-### C1) Create/enter a Zero Trust organization
-
-1. Open: https://one.dash.cloudflare.com/
-2. If prompted, create a Zero Trust organization (Free plan is fine).
-
-Verify:
-
-- You can access the Zero Trust dashboard.
-
----
-
-### C2) Create a DNS Location (to get the DoH endpoint)
-
-1. Go to **Networks > Resolvers & Proxies > DNS Locations**
-2. Add a location (example name: `Workshop-Browser-DoH`)
-3. Note the **DoH endpoint** (format):
+#### 📸 Screenshot placeholder:
 
 ```
-https://xxxxx.cloudflare-gateway.com/dns-query
+[ภาพ: Code editor พร้อมโค้ดใหม่ และปุ่ม Save and deploy]
+[ภาพ: Browser แสดง JSON response จาก /api/hello]
 ```
 
-Verify:
-
-- You can see the DNS location and its DoH URL.
-
-Rollback:
-
-- Delete the DNS location if it was created only for the lab.
-
 ---
 
-### C3) Create a DNS policy to block a security category
+### A4) เพิ่ม Environment Variable
 
-1. Go to **Traffic policies > Firewall policies**
-2. Select the **DNS** tab
-3. Add a policy:
-   - Name: `Block Malware (Demo)`
-   - Selector: **Security Categories**
-   - Operator: `in`
-   - Value: `Malware` (or `All security risks` if you want broader coverage)
-   - Action: `Block`
-4. Save.
+**เป้าหมาย:** เรียนรู้การตั้งค่า config โดยไม่ต้องแก้โค้ด
 
-Verify:
+#### ขั้นตอน:
 
-- Policy appears in the DNS policy list.
+1. ที่หน้า Worker ของคุณ คลิกแท็บ **"Settings"**
 
-Rollback:
+2. เลื่อนลงมาหาส่วน **"Variables and Secrets"** (หรือ "Environment Variables")
 
-- Disable/delete the policy.
+3. คลิก **"Add variable"** (หรือ "Add")
 
----
+4. กรอกข้อมูล:
+   - **Variable name:** `ENVIRONMENT`
+   - **Value:** `workshop-demo`
 
-### C4) Configure Browser Secure DNS (DoH)
+5. คลิก **"Save"** (หรือ "Save and deploy")
 
-Configure your browser to use the DoH endpoint from **C2**.
+   > ⚠️ บาง UI อาจต้องกด Deploy อีกครั้งหลัง save
 
-#### Chrome / Edge
+#### ✅ ตรวจสอบความสำเร็จ:
 
-1. Settings
-2. Privacy and security
-3. Security
-4. Use Secure DNS
-5. Choose a service provider: **Custom**
-6. Paste:
+- [ ] Variable ปรากฏในรายการ
+- [ ] เข้า `/api/hello` แล้วเห็น `"environment": "workshop-demo"`
 
-- `https://xxxxx.cloudflare-gateway.com/dns-query`
+#### 🧪 ทดสอบ:
 
-#### Firefox
+1. เปิด `https://your-worker.xxx.workers.dev/api/hello`
+2. ดูค่า `environment` ใน JSON response
+3. ควรเห็น:
+   ```json
+   {
+     "ok": true,
+     "message": "Hello from Cloudflare Workers (GUI deploy)!",
+     "environment": "workshop-demo",
+     "timestamp": "..."
+   }
+   ```
 
-1. Settings
-2. Privacy & Security
-3. DNS over HTTPS
-4. Increased Protection / Max Protection (depending on UI)
-5. Add custom provider URL:
-
-- `https://xxxxx.cloudflare-gateway.com/dns-query`
-
-Verify:
-
-- Browser Secure DNS is enabled and points to your Gateway DoH endpoint.
-
-Rollback:
-
-- Turn off Secure DNS / remove custom provider.
-
----
-
-### C5) Test blocking with safe test domains (recommended)
-
-Cloudflare provides safe category test domains. After enabling your DNS policy:
-
-- Open in your browser:
+#### 📸 Screenshot placeholder:
 
 ```
-malware.testcategory.com
+[ภาพ: หน้า Settings > Variables พร้อม ENVIRONMENT variable]
+[ภาพ: JSON response แสดง environment: "workshop-demo"]
 ```
 
-Expected:
+#### 🔄 Rollback:
 
-- You should see a block page (or the request fails) if the Malware category is blocked.
-
-More common test domains:
-
-- `phishing.testcategory.com`
-- `spam.testcategory.com`
-- `spyware.testcategory.com`
-- `cryptomining.testcategory.com`
-- `newdomains.testcategory.com`
-
-Reference (Cloudflare docs):
-
-- https://developers.cloudflare.com/cloudflare-one/policies/gateway/dns-policies/test-dns-filtering/
-
-Tip:
-
-- If you recently visited the domain, you may need to clear browser/OS DNS cache before retesting.
+1. ไปที่ Settings > Variables
+2. คลิก Delete ที่ variable ที่ต้องการลบ
+3. Save และ deploy ใหม่
 
 ---
 
-### C6) Verify with DNS Logs (GUI)
+### A5) ดู Logs และ Observability
 
-1. Go to **Insights > Logs (DNS tab)**
-2. Filter for your test domain (example: `malware.testcategory.com`)
+**เป้าหมาย:** เรียนรู้การ monitor และ debug Worker
 
-Verify:
+#### ขั้นตอน:
 
-- You see the query and the action (blocked/allowed) and the matched policy.
+1. ที่หน้า Worker ของคุณ คลิกแท็บ **"Logs"** (หรือ "Observability")
+
+2. จะเห็นหน้า Real-time Logs
+
+3. เปิด browser tab ใหม่แล้วเข้า Worker URL หลายๆ ครั้ง:
+   - `https://your-worker.xxx.workers.dev/`
+   - `https://your-worker.xxx.workers.dev/api/hello`
+   - `https://your-worker.xxx.workers.dev/test`
+
+4. กลับมาดูหน้า Logs จะเห็น request เข้ามา
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็น log entries ของ requests ที่เพิ่งทำ
+- [ ] เห็นข้อมูล: timestamp, path, status code, duration
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: หน้า Logs แสดง request entries]
+```
+
+#### 💡 Tips:
+
+- ถ้าไม่เห็น logs ให้รอสักครู่แล้ว refresh
+- สามารถ filter logs ตาม status code หรือ path ได้
+- ถ้ามี error จะเห็น stack trace ใน logs
+
+---
+
+## Part B — Cloudflare Pages (GUI-only)
+
+### B1) เตรียมไฟล์สำหรับ deploy
+
+**เป้าหมาย:** เข้าใจโครงสร้างไฟล์ที่จะ deploy
+
+#### ไฟล์ตัวอย่างใน repo นี้:
+
+```
+pages-site/
+└── index.html    ← ไฟล์เว็บหน้าเดียว
+```
+
+#### เนื้อหาของ `pages-site/index.html`:
+
+เป็นหน้าเว็บ HTML ง่ายๆ ที่แสดงข้อความยืนยันว่า deploy สำเร็จ
+
+---
+
+### B2) Deploy Pages ผ่าน GitHub (แนะนำ)
+
+**เป้าหมาย:** Deploy เว็บ static โดยเชื่อมต่อกับ GitHub
+
+#### ขั้นตอน:
+
+**ขั้นตอนที่ 1: Fork repository นี้**
+
+1. เปิด GitHub ไปที่ repository นี้:
+   ```
+   https://github.com/pongpisit/cloudflare-gui-workshop-lab
+   ```
+
+2. คลิกปุ่ม **"Fork"** (มุมขวาบน)
+
+3. เลือก account ของคุณเป็น destination
+
+4. รอจนกว่า fork จะเสร็จ
+
+**ขั้นตอนที่ 2: สร้าง Pages project บน Cloudflare**
+
+5. เปิด Cloudflare Dashboard: https://dash.cloudflare.com/
+
+6. ไปที่ **Workers & Pages** (เมนูด้านซ้าย)
+
+7. คลิก **"Create"** > เลือก **"Pages"**
+
+8. เลือก **"Connect to Git"**
+
+9. คลิก **"Connect GitHub"** (ถ้ายังไม่เคยเชื่อมต่อ)
+
+10. Authorize Cloudflare ให้เข้าถึง GitHub ของคุณ
+
+**ขั้นตอนที่ 3: เลือก repository และตั้งค่า**
+
+11. เลือก repository: `cloudflare-gui-workshop-lab` (ที่ fork มา)
+
+12. ตั้งค่า build settings:
+
+    | Setting | Value |
+    |---------|-------|
+    | **Project name** | `my-workshop-site` (หรือชื่อที่ต้องการ) |
+    | **Production branch** | `main` |
+    | **Framework preset** | `None` |
+    | **Build command** | *(เว้นว่างไว้)* |
+    | **Build output directory** | `pages-site` |
+
+13. คลิก **"Save and Deploy"**
+
+14. รอ 1-2 นาที จนกว่า deploy จะเสร็จ
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็นข้อความ "Success" หรือ "Deployment complete"
+- [ ] ได้รับ URL เช่น `https://my-workshop-site.pages.dev`
+- [ ] เปิด URL แล้วเห็นหน้าเว็บ
+
+#### 🧪 ทดสอบ:
+
+1. คลิก URL ที่ได้ (หรือ copy ไปเปิดใน tab ใหม่)
+2. ควรเห็นหน้าเว็บที่มีข้อความ "Cloudflare Pages (GUI-only) — Lab Site"
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: หน้า Connect to Git เลือก repository]
+[ภาพ: หน้า Build settings configuration]
+[ภาพ: หน้า Deployment success พร้อม URL]
+[ภาพ: หน้าเว็บที่ deploy สำเร็จ]
+```
+
+#### 🔄 Rollback:
+
+1. ไปที่ Workers & Pages
+2. คลิกที่ชื่อ Pages project
+3. ไปที่ Settings > Delete project
+4. พิมพ์ชื่อ project เพื่อยืนยัน
+
+---
+
+### B3) Deploy Pages โดย Direct Upload (ทางเลือก)
+
+**ใช้วิธีนี้ถ้า:** ไม่สามารถใช้ GitHub ได้ หรือต้องการ upload ไฟล์โดยตรง
+
+#### ขั้นตอน:
+
+1. Download ไฟล์ `pages-site/index.html` จาก repo นี้ลงเครื่อง
+
+2. ไปที่ Cloudflare Dashboard > **Workers & Pages**
+
+3. คลิก **"Create"** > เลือก **"Pages"**
+
+4. เลือก **"Upload assets"** (หรือ "Direct Upload")
+
+5. ตั้งชื่อ project: `my-workshop-site`
+
+6. ลากไฟล์ `index.html` มาวางในพื้นที่ upload
+   
+   หรือคลิก "Select files" แล้วเลือกไฟล์
+
+7. คลิก **"Deploy site"**
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] ได้รับ URL `*.pages.dev`
+- [ ] เปิด URL แล้วเห็นหน้าเว็บ
+
+---
+
+## Part C — Zero Trust DNS Security (ผ่าน Browser DoH)
+
+### C1) เข้าสู่ Zero Trust Dashboard
+
+**เป้าหมาย:** เข้าถึง Cloudflare Zero Trust Dashboard
+
+#### ขั้นตอน:
+
+1. เปิด browser ไปที่:
+   ```
+   https://one.dash.cloudflare.com/
+   ```
+
+2. Login ด้วย Cloudflare account เดียวกับที่ใช้ใน Part A และ B
+
+3. **ถ้าเป็นครั้งแรก:** ระบบจะให้สร้าง Zero Trust organization
+   - ตั้งชื่อ team: เช่น `my-workshop-org`
+   - เลือก plan: **Free** (สำหรับ workshop)
+   - กรอกข้อมูลตามที่ระบบขอ
+
+4. หลังจากสร้างเสร็จ จะเห็น Zero Trust Dashboard
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็น Zero Trust Dashboard
+- [ ] เห็นเมนูด้านซ้าย: Networks, Traffic policies, Insights, etc.
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: Zero Trust Dashboard หน้าหลัก]
+```
+
+---
+
+### C2) สร้าง DNS Location (เพื่อรับ DoH endpoint)
+
+**เป้าหมาย:** สร้าง DNS Location และรับ DoH URL สำหรับใช้ใน browser
+
+#### ขั้นตอน:
+
+1. ที่ Zero Trust Dashboard คลิกเมนู **"Networks"** (ด้านซ้าย)
+
+2. คลิก **"Resolvers & Proxies"**
+
+3. คลิก **"DNS Locations"**
+
+4. คลิก **"Add a location"**
+
+5. กรอกข้อมูล:
+   - **Name:** `Workshop-Browser-DoH`
+   - ตัวเลือกอื่นๆ: ใช้ค่า default
+
+6. คลิก **"Add location"** หรือ **"Save"**
+
+7. **สำคัญ:** หลังจากสร้างเสร็จ ให้ **จดบันทึก DoH endpoint** ที่ระบบแสดง
+
+   รูปแบบ:
+   ```
+   https://xxxxxx.cloudflare-gateway.com/dns-query
+   ```
+
+   > ⚠️ ค่า `xxxxxx` จะไม่เหมือนกันในแต่ละ account ให้ copy ค่าจริงของคุณ
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็น DNS Location ในรายการ
+- [ ] จดบันทึก DoH URL ไว้แล้ว
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: หน้า Add DNS Location]
+[ภาพ: DNS Location ที่สร้างเสร็จ พร้อม DoH URL]
+```
+
+#### 🔄 Rollback:
+
+1. ไปที่ Networks > Resolvers & Proxies > DNS Locations
+2. คลิกที่ location ที่ต้องการลบ
+3. คลิก Delete
+
+---
+
+### C3) สร้าง DNS Policy (บล็อก Malware)
+
+**เป้าหมาย:** สร้าง policy เพื่อบล็อกเว็บไซต์ที่เป็นอันตราย
+
+#### ขั้นตอน:
+
+1. ที่ Zero Trust Dashboard คลิกเมนู **"Traffic policies"** (ด้านซ้าย)
+
+2. คลิก **"Firewall policies"**
+
+3. คลิกแท็บ **"DNS"**
+
+4. คลิก **"Add a policy"**
+
+5. กรอกข้อมูล:
+
+   **ส่วน Name:**
+   - **Name:** `Block Malware (Workshop Demo)`
+
+   **ส่วน Traffic (Build an expression):**
+   
+   | Field | Value |
+   |-------|-------|
+   | **Selector** | `Security Categories` |
+   | **Operator** | `in` |
+   | **Value** | เลือก `Malware` (หรือ `All security risks` ถ้าต้องการบล็อกทุกประเภท) |
+
+6. **ส่วน Action:**
+   - เลือก **"Block"**
+
+7. คลิก **"Create policy"** หรือ **"Save"**
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] Policy ปรากฏในรายการ DNS policies
+- [ ] Status เป็น "Active" หรือ "Enabled"
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: หน้า Add DNS Policy - ส่วน Traffic expression]
+[ภาพ: หน้า Add DNS Policy - ส่วน Action]
+[ภาพ: รายการ DNS policies หลังสร้างเสร็จ]
+```
+
+#### 🔄 Rollback:
+
+1. ไปที่ Traffic policies > Firewall policies > DNS
+2. คลิกที่ policy ที่ต้องการ
+3. คลิก Disable หรือ Delete
+
+---
+
+### C4) ตั้งค่า Browser ให้ใช้ DoH endpoint
+
+**เป้าหมาย:** ให้ browser ใช้ Cloudflare Gateway DNS แทน DNS ปกติ
+
+#### สำหรับ Google Chrome:
+
+1. เปิด Chrome แล้วไปที่:
+   ```
+   chrome://settings/security
+   ```
+   
+   หรือ: Settings > Privacy and security > Security
+
+2. เลื่อนลงมาหาส่วน **"Use secure DNS"**
+
+3. เปิดใช้งาน (toggle on)
+
+4. เลือก **"With Custom"** หรือ **"Customized"**
+
+5. วาง DoH URL ที่จดไว้จากขั้นตอน C2:
+   ```
+   https://xxxxxx.cloudflare-gateway.com/dns-query
+   ```
+
+6. กด Enter หรือคลิกออกจากช่อง input
+
+#### สำหรับ Microsoft Edge:
+
+1. เปิด Edge แล้วไปที่:
+   ```
+   edge://settings/privacy
+   ```
+   
+   หรือ: Settings > Privacy, search, and services
+
+2. เลื่อนลงมาหาส่วน **"Security"**
+
+3. หา **"Use secure DNS to specify how to lookup the network address for websites"**
+
+4. เปิดใช้งาน และเลือก **"Choose a service provider"**
+
+5. เลือก **"Enter custom provider"**
+
+6. วาง DoH URL:
+   ```
+   https://xxxxxx.cloudflare-gateway.com/dns-query
+   ```
+
+#### สำหรับ Mozilla Firefox:
+
+1. เปิด Firefox แล้วไปที่:
+   ```
+   about:preferences#privacy
+   ```
+   
+   หรือ: Settings > Privacy & Security
+
+2. เลื่อนลงมาหาส่วน **"DNS over HTTPS"**
+
+3. เลือก **"Max Protection"** หรือ **"Increased Protection"**
+
+4. ที่ dropdown "Choose provider" เลือก **"Custom"**
+
+5. วาง DoH URL:
+   ```
+   https://xxxxxx.cloudflare-gateway.com/dns-query
+   ```
+
+6. คลิก **"OK"** หรือปิดหน้า settings
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] ตั้งค่า Secure DNS / DoH เรียบร้อย
+- [ ] ใส่ DoH URL ของ Cloudflare Gateway แล้ว
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: Chrome - หน้า Security settings พร้อม DoH URL]
+[ภาพ: Edge - หน้า Privacy settings พร้อม DoH URL]
+[ภาพ: Firefox - หน้า DNS over HTTPS settings]
+```
+
+#### 🔄 Rollback:
+
+- **Chrome/Edge:** ปิด "Use secure DNS" หรือเลือก provider อื่น
+- **Firefox:** เลือก "Off" หรือ "Default Protection"
+
+---
+
+### C5) ทดสอบการบล็อกด้วย Test Domain
+
+**เป้าหมาย:** ยืนยันว่า DNS policy ทำงานถูกต้อง
+
+#### Cloudflare Test Domains:
+
+Cloudflare มี domain พิเศษสำหรับทดสอบ category blocking โดยไม่ต้องเข้าเว็บอันตรายจริง:
+
+| Category | Test Domain |
+|----------|-------------|
+| Malware | `malware.testcategory.com` |
+| Phishing | `phishing.testcategory.com` |
+| Spam | `spam.testcategory.com` |
+| Spyware | `spyware.testcategory.com` |
+| Cryptomining | `cryptomining.testcategory.com` |
+| New Domains | `newdomains.testcategory.com` |
+
+#### ขั้นตอนทดสอบ:
+
+1. เปิด browser tab ใหม่
+
+2. พิมพ์ในช่อง URL:
+   ```
+   malware.testcategory.com
+   ```
+
+3. กด Enter
+
+4. **ผลลัพธ์ที่คาดหวัง:**
+   - เห็น **Cloudflare Block Page** (หน้าแจ้งว่าถูกบล็อก)
+   - หรือ browser แสดง error "This site can't be reached"
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็น block page หรือ error
+- [ ] ไม่สามารถเข้าถึง `malware.testcategory.com` ได้
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: Cloudflare Block Page]
+```
+
+#### 💡 Tips:
+
+- ถ้ายังเข้าได้ ให้ลอง:
+  1. Clear DNS cache ของ browser (ปิดแล้วเปิดใหม่)
+  2. รอ 1-2 นาทีให้ policy propagate
+  3. ตรวจสอบว่าตั้งค่า DoH ถูกต้อง
+
+#### วิธี Clear DNS Cache:
+
+**Windows:**
+```cmd
+ipconfig /flushdns
+```
+
+**macOS:**
+```bash
+sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+```
+
+**Browser:** ปิด browser ทั้งหมดแล้วเปิดใหม่
+
+---
+
+### C6) ดู DNS Logs
+
+**เป้าหมาย:** ยืนยันการทำงานของ policy ผ่าน logs
+
+#### ขั้นตอน:
+
+1. กลับไปที่ Zero Trust Dashboard: https://one.dash.cloudflare.com/
+
+2. คลิกเมนู **"Insights"** (ด้านซ้าย)
+
+3. คลิก **"Logs"**
+
+4. เลือกแท็บ **"Gateway"** > **"DNS"**
+
+5. หา log entry ของ `malware.testcategory.com`
+
+   > 💡 อาจต้องรอ 1-2 นาทีให้ log ปรากฏ
+
+6. คลิกที่ log entry เพื่อดูรายละเอียด
+
+#### ✅ ตรวจสอบความสำเร็จ:
+
+- [ ] เห็น log entry ของ domain ที่ทดสอบ
+- [ ] เห็น Action: "Block" หรือ "Blocked"
+- [ ] เห็นชื่อ Policy ที่ match
+
+#### 📸 Screenshot placeholder:
+
+```
+[ภาพ: หน้า DNS Logs แสดง blocked request]
+[ภาพ: รายละเอียด log entry]
+```
+
+---
+
+## การแก้ไขปัญหาเบื้องต้น
+
+### ปัญหา: Worker deploy ไม่สำเร็จ
+
+**สาเหตุที่เป็นไปได้:**
+- Syntax error ในโค้ด
+- ชื่อ Worker ซ้ำกับที่มีอยู่แล้ว
+
+**วิธีแก้:**
+1. ตรวจสอบ error message ที่แสดง
+2. ตรวจสอบโค้ดว่า copy มาครบหรือไม่
+3. ลองเปลี่ยนชื่อ Worker
+
+---
+
+### ปัญหา: Pages deploy ไม่สำเร็จ
+
+**สาเหตุที่เป็นไปได้:**
+- Build output directory ไม่ถูกต้อง
+- ไม่มีไฟล์ใน directory ที่ระบุ
+
+**วิธีแก้:**
+1. ตรวจสอบว่า Build output directory เป็น `pages-site`
+2. ตรวจสอบว่า repository มีโฟลเดอร์ `pages-site/` และมี `index.html` อยู่ข้างใน
+
+---
+
+### ปัญหา: DNS blocking ไม่ทำงาน
+
+**สาเหตุที่เป็นไปได้:**
+- DoH URL ไม่ถูกต้อง
+- DNS cache ยังเก็บค่าเก่าอยู่
+- Policy ยังไม่ active
+
+**วิธีแก้:**
+1. ตรวจสอบ DoH URL ว่า copy มาถูกต้อง
+2. Clear DNS cache (ดูวิธีในขั้นตอน C5)
+3. รอ 2-3 นาทีให้ policy propagate
+4. ตรวจสอบว่า policy status เป็น "Active"
+
+---
+
+### ปัญหา: ไม่เห็น DNS Logs
+
+**สาเหตุที่เป็นไปได้:**
+- Logs ยังไม่ sync
+- Filter ไม่ถูกต้อง
+
+**วิธีแก้:**
+1. รอ 2-5 นาทีแล้ว refresh
+2. ตรวจสอบ time range ของ filter
+3. ลอง clear filter แล้วดูทั้งหมด
+
+---
+
+## 🎉 สรุป
+
+เมื่อทำ workshop นี้เสร็จ คุณจะได้เรียนรู้:
+
+| หัวข้อ | สิ่งที่ทำได้ |
+|--------|-------------|
+| **Workers** | สร้าง, แก้ไข, deploy, ตั้งค่า variables, ดู logs |
+| **Pages** | Deploy เว็บ static ผ่าน GitHub หรือ direct upload |
+| **DNS Security** | สร้าง policy, ตั้งค่า DoH ใน browser, ทดสอบ blocking, ดู logs |
+
+---
+
+## 📚 แหล่งเรียนรู้เพิ่มเติม
+
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
+- [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Cloudflare Zero Trust Documentation](https://developers.cloudflare.com/cloudflare-one/)
+- [DNS Filtering Test Domains](https://developers.cloudflare.com/cloudflare-one/policies/gateway/dns-policies/test-dns-filtering/)
 
 ---
 
