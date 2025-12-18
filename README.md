@@ -9,6 +9,7 @@ A step-by-step guide to deploying Cloudflare Pages and configuring DNS Security 
 - [Prerequisites](#prerequisites)
 - [Part A: Cloudflare Pages](#part-a--cloudflare-pages)
 - [Part B: Zero Trust DNS Security](#part-b--zero-trust-dns-security-via-browser-doh)
+- [Part C: ZTNA with Remote Browser Isolation](#part-c--ztna-with-remote-browser-isolation)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -487,6 +488,269 @@ sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
 ---
 
+## Part C — ZTNA with Remote Browser Isolation
+
+### C1) Create a Self-Hosted Application
+
+**Goal:** Publish an internal application through Cloudflare Access for secure, agentless access
+
+#### Steps:
+
+1. In the Zero Trust Dashboard, click **"Access"** in the left sidebar
+
+2. Click **"Applications"**
+
+3. Click **"Add an application"**
+
+4. Select **"Self-hosted"**
+
+5. Configure the application:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Application name** | `Internal App Demo` |
+   | **Session Duration** | `24 hours` (or your preference) |
+   | **Application domain** | `internal-app.yourdomain.com` (use your domain) |
+
+6. Click **"Next"**
+
+#### ✅ Verification:
+
+- [ ] Application name and domain are configured
+- [ ] You can proceed to the next step
+
+#### 📸 Screenshot placeholder:
+
+```
+[Image: Add Application - Self-hosted configuration]
+```
+
+---
+
+### C2) Configure Access Policy
+
+**Goal:** Define who can access the application
+
+#### Steps:
+
+1. In the **"Add policies"** section, create a new policy:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Policy name** | `Allow Workshop Users` |
+   | **Action** | `Allow` |
+
+2. Configure the policy rule:
+
+   | Selector | Operator | Value |
+   |----------|----------|-------|
+   | **Emails** | `Emails ending in` | `@yourdomain.com` |
+
+   > 💡 You can also use specific email addresses, groups, or other identity providers
+
+3. Click **"Next"**
+
+#### ✅ Verification:
+
+- [ ] Policy is configured with appropriate access rules
+- [ ] Action is set to "Allow"
+
+#### 📸 Screenshot placeholder:
+
+```
+[Image: Access Policy configuration]
+```
+
+#### 🔄 Rollback:
+
+1. Go to Access > Applications
+2. Click on the application
+3. Edit or delete the policy as needed
+
+---
+
+### C3) Enable Remote Browser Isolation
+
+**Goal:** Add an extra layer of security by isolating the browser session
+
+#### Steps:
+
+1. In the application settings, scroll to **"Additional settings"** or go to **"Settings"** tab
+
+2. Find the **"Browser Isolation"** section
+
+3. Enable **"Isolate application"**
+
+4. Configure isolation settings:
+
+   | Setting | Recommended Value |
+   |---------|-------------------|
+   | **Disable copy** | ✅ Enabled (prevents copying content) |
+   | **Disable paste** | ✅ Enabled (prevents pasting content) |
+   | **Disable printing** | ✅ Enabled (prevents printing) |
+   | **Disable download** | ✅ Enabled (prevents file downloads) |
+   | **Disable upload** | ✅ Enabled (prevents file uploads) |
+   | **Disable keyboard** | ❌ Disabled (allow typing) |
+
+   > 💡 Adjust these settings based on your security requirements
+
+5. Click **"Save"** or **"Add application"**
+
+#### ✅ Verification:
+
+- [ ] Browser Isolation is enabled
+- [ ] Data protection settings are configured
+
+#### 📸 Screenshot placeholder:
+
+```
+[Image: Browser Isolation settings]
+```
+
+---
+
+### C4) Configure Tunnel (for Internal Applications)
+
+**Goal:** Connect your internal application to Cloudflare without opening firewall ports
+
+#### Steps:
+
+1. In the Zero Trust Dashboard, click **"Networks"** in the left sidebar
+
+2. Click **"Tunnels"**
+
+3. Click **"Create a tunnel"**
+
+4. Select **"Cloudflared"** and click **"Next"**
+
+5. Name your tunnel:
+   - **Tunnel name:** `workshop-tunnel`
+
+6. Click **"Save tunnel"**
+
+7. **Install the connector:** Follow the instructions shown for your operating system
+
+   **For Docker:**
+   ```bash
+   docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token <YOUR_TOKEN>
+   ```
+
+   **For Windows/macOS/Linux:** Download and run the installer with the provided token
+
+8. After the connector is running, configure the **Public hostname**:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Public hostname** | `internal-app.yourdomain.com` |
+   | **Service Type** | `HTTP` or `HTTPS` |
+   | **URL** | `localhost:8080` (your internal app address) |
+
+9. Click **"Save tunnel"**
+
+#### ✅ Verification:
+
+- [ ] Tunnel status shows "Healthy" or "Connected"
+- [ ] Public hostname is configured
+
+#### 📸 Screenshot placeholder:
+
+```
+[Image: Tunnel creation page]
+[Image: Tunnel connector installation]
+[Image: Public hostname configuration]
+```
+
+#### 🔄 Rollback:
+
+1. Go to Networks > Tunnels
+2. Click on the tunnel
+3. Click Delete tunnel
+
+---
+
+### C5) Test Agentless Access with RBI
+
+**Goal:** Verify that users can access the application securely without installing any agent
+
+#### Steps:
+
+1. Open a **new browser** (or incognito/private window)
+
+2. Navigate to your application URL:
+   ```
+   https://internal-app.yourdomain.com
+   ```
+
+3. You will be redirected to the **Cloudflare Access login page**
+
+4. Authenticate using one of the configured methods:
+   - One-time PIN (sent to your email)
+   - Identity provider (Google, Azure AD, etc.)
+
+5. After successful authentication:
+   - You will see the application rendered in an **isolated browser**
+   - Notice the **Cloudflare toolbar** at the top (if enabled)
+   - Try copying text — it should be blocked (if configured)
+
+#### ✅ Verification:
+
+- [ ] Access login page appears
+- [ ] Authentication works correctly
+- [ ] Application loads in isolated browser
+- [ ] Data protection controls work (copy/paste blocked)
+
+#### 📸 Screenshot placeholder:
+
+```
+[Image: Cloudflare Access login page]
+[Image: Application in isolated browser with toolbar]
+```
+
+#### 💡 Tips:
+
+- The isolated browser runs on Cloudflare's edge, not on the user's device
+- All rendering happens remotely — only pixels are sent to the user
+- No data can be exfiltrated if copy/paste/download are disabled
+- Works on any device with a modern browser — no agent required
+
+---
+
+### C6) View Access Logs
+
+**Goal:** Monitor who accessed the application and when
+
+#### Steps:
+
+1. In the Zero Trust Dashboard, click **"Insights"** in the left sidebar
+
+2. Click **"Logs"**
+
+3. Select the **"Access"** tab
+
+4. Find the log entries for your application access
+
+5. Click on a log entry to view details:
+   - User email
+   - Authentication method
+   - Access time
+   - Application accessed
+   - Action (allowed/blocked)
+
+#### ✅ Verification:
+
+- [ ] You can see Access log entries
+- [ ] Your test access is recorded
+- [ ] User and application details are visible
+
+#### 📸 Screenshot placeholder:
+
+```
+[Image: Access Logs page]
+[Image: Log entry details]
+```
+
+---
+
 ## Troubleshooting
 
 ### Problem: Pages deployment failed
@@ -529,6 +793,33 @@ sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
 ---
 
+### Problem: Access application not loading
+
+**Possible causes:**
+- Tunnel is not connected
+- Public hostname misconfigured
+- Origin server not running
+
+**Solutions:**
+1. Check tunnel status in Networks > Tunnels
+2. Verify the service URL points to the correct internal address
+3. Ensure the origin application is running and accessible locally
+
+---
+
+### Problem: Browser Isolation not working
+
+**Possible causes:**
+- Isolation not enabled for the application
+- Browser not supported
+
+**Solutions:**
+1. Verify "Isolate application" is enabled in application settings
+2. Use a supported browser (Chrome, Edge, Firefox, Safari)
+3. Clear browser cache and try again
+
+---
+
 ## 🎉 Summary
 
 After completing this guide, you will have learned:
@@ -537,6 +828,7 @@ After completing this guide, you will have learned:
 |-------|-----------------|
 | **Pages** | Deploy static websites via GitHub or direct upload |
 | **DNS Security** | Create policies, configure DoH in browser, test blocking, view logs |
+| **ZTNA + RBI** | Publish internal apps, configure access policies, enable browser isolation, agentless access |
 
 ---
 
@@ -545,6 +837,9 @@ After completing this guide, you will have learned:
 - [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
 - [Cloudflare Zero Trust Documentation](https://developers.cloudflare.com/cloudflare-one/)
 - [DNS Filtering Test Domains](https://developers.cloudflare.com/cloudflare-one/policies/gateway/dns-policies/test-dns-filtering/)
+- [Cloudflare Access Documentation](https://developers.cloudflare.com/cloudflare-one/policies/access/)
+- [Browser Isolation Documentation](https://developers.cloudflare.com/cloudflare-one/policies/browser-isolation/)
+- [Cloudflare Tunnels Documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
 
 ---
 
