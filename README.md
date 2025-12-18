@@ -1,15 +1,14 @@
 # Cloudflare Workshop Lab
 
-A step-by-step guide to deploying Cloudflare Workers, Pages, and configuring DNS Security via the Dashboard.
+A step-by-step guide to deploying Cloudflare Pages and configuring DNS Security via the Dashboard.
 
 ---
 
 ## 📋 Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Part A: Cloudflare Workers](#part-a--cloudflare-workers)
-- [Part B: Cloudflare Pages](#part-b--cloudflare-pages)
-- [Part C: Zero Trust DNS Security](#part-c--zero-trust-dns-security-via-browser-doh)
+- [Part A: Cloudflare Pages](#part-a--cloudflare-pages)
+- [Part B: Zero Trust DNS Security](#part-b--zero-trust-dns-security-via-browser-doh)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -32,250 +31,9 @@ A step-by-step guide to deploying Cloudflare Workers, Pages, and configuring DNS
 
 ---
 
-## Part A — Cloudflare Workers
+## Part A — Cloudflare Pages
 
-### A1) Navigate to Workers & Pages
-
-**Goal:** Access the Workers and Pages management page on Cloudflare Dashboard
-
-#### Steps:
-
-1. Open your browser and go to:
-   ```
-   https://dash.cloudflare.com/
-   ```
-
-2. Log in with your Cloudflare account email and password
-
-3. After successful login, you will see the main Dashboard
-
-4. In the **left sidebar menu**, click on **"Workers & Pages"**
-
-   ```
-   📍 Location: Left sidebar > Workers & Pages
-   ```
-
-#### ✅ Verification:
-
-- [ ] You can see the "Workers & Pages" overview page
-- [ ] You can see the "Create" or "Create application" button
-
-#### 📸 Screenshot placeholder:
-
-```
-[Image: Workers & Pages overview page with Create button]
-```
-
----
-
-### A2) Create a New Worker (Hello World)
-
-**Goal:** Create your first Worker and deploy it to production
-
-#### Steps:
-
-1. On the Workers & Pages page, click the **"Create"** button (or "Create application")
-
-2. Select **"Create Worker"**
-
-3. Set the Worker name:
-   - **Name:** `my-first-worker` (or any name you prefer)
-   
-   > 💡 This name will be part of your URL: `my-first-worker.xxx.workers.dev`
-
-4. Click **"Deploy"** (using the default Hello World template)
-
-5. Wait until you see the "Success" or "Deployed" message
-
-#### ✅ Verification:
-
-- [ ] You can see the Worker URL, e.g., `https://my-first-worker.xxx.workers.dev`
-- [ ] Clicking the URL shows "Hello World!" or similar message
-
-#### 🧪 Test:
-
-1. Click on the Worker URL (or copy and paste it into a new browser tab)
-2. You should see a response from the Worker
-
-#### 📸 Screenshot placeholder:
-
-```
-[Image: Worker overview page after successful deployment with URL]
-```
-
-#### 🔄 Rollback (if you want to delete):
-
-1. Go to Workers & Pages
-2. Click on the Worker name
-3. Go to Settings > Delete
-4. Type the Worker name to confirm, then click Delete
-
----
-
-### A3) Edit Worker Code to Return JSON
-
-**Goal:** Learn how to edit code and redeploy via the Dashboard
-
-#### Steps:
-
-1. On your Worker page, click the **"Code"** tab (or "Edit code")
-
-2. You will see a code editor in the browser
-
-3. **Delete all existing code** and **paste the following code:**
-
-```javascript
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-
-    // If accessing /api/hello path, return JSON
-    if (url.pathname === '/api/hello') {
-      return Response.json({
-        ok: true,
-        message: 'Hello from Cloudflare Workers (GUI deploy)!',
-        environment: env.ENVIRONMENT ?? 'not-set',
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    // For other paths, return plain text
-    return new Response('Worker is running. Try visiting /api/hello', {
-      headers: { 'content-type': 'text/plain; charset=utf-8' },
-    });
-  },
-};
-```
-
-4. Click the **"Save and deploy"** button (or "Deploy")
-
-5. Wait until you see the success message
-
-#### ✅ Verification:
-
-- [ ] Deployment succeeded without errors
-- [ ] Visiting `https://your-worker.xxx.workers.dev/` shows "Worker is running..."
-- [ ] Visiting `https://your-worker.xxx.workers.dev/api/hello` shows JSON response
-
-#### 🧪 Test:
-
-1. Open a new tab and go to your Worker URL + `/api/hello`
-   ```
-   https://my-first-worker.xxx.workers.dev/api/hello
-   ```
-
-2. You should see JSON like this:
-   ```json
-   {
-     "ok": true,
-     "message": "Hello from Cloudflare Workers (GUI deploy)!",
-     "environment": "not-set",
-     "timestamp": "2025-02-05T10:30:00.000Z"
-   }
-   ```
-
-#### 📸 Screenshot placeholder:
-
-```
-[Image: Code editor with new code and Save and deploy button]
-[Image: Browser showing JSON response from /api/hello]
-```
-
----
-
-### A4) Add an Environment Variable
-
-**Goal:** Learn how to configure settings without changing code
-
-#### Steps:
-
-1. On your Worker page, click the **"Settings"** tab
-
-2. Scroll down to find the **"Variables and Secrets"** section (or "Environment Variables")
-
-3. Click **"Add variable"** (or "Add")
-
-4. Enter the following:
-   - **Variable name:** `ENVIRONMENT`
-   - **Value:** `workshop-demo`
-
-5. Click **"Save"** (or "Save and deploy")
-
-   > ⚠️ Some UI versions may require clicking Deploy again after saving
-
-#### ✅ Verification:
-
-- [ ] The variable appears in the list
-- [ ] Visiting `/api/hello` shows `"environment": "workshop-demo"`
-
-#### 🧪 Test:
-
-1. Open `https://your-worker.xxx.workers.dev/api/hello`
-2. Check the `environment` value in the JSON response
-3. You should see:
-   ```json
-   {
-     "ok": true,
-     "message": "Hello from Cloudflare Workers (GUI deploy)!",
-     "environment": "workshop-demo",
-     "timestamp": "..."
-   }
-   ```
-
-#### 📸 Screenshot placeholder:
-
-```
-[Image: Settings > Variables page with ENVIRONMENT variable]
-[Image: JSON response showing environment: "workshop-demo"]
-```
-
-#### 🔄 Rollback:
-
-1. Go to Settings > Variables
-2. Click Delete on the variable you want to remove
-3. Save and redeploy
-
----
-
-### A5) View Logs and Observability
-
-**Goal:** Learn how to monitor and debug your Worker
-
-#### Steps:
-
-1. On your Worker page, click the **"Logs"** tab (or "Observability")
-
-2. You will see the Real-time Logs page
-
-3. Open a new browser tab and visit your Worker URL multiple times:
-   - `https://your-worker.xxx.workers.dev/`
-   - `https://your-worker.xxx.workers.dev/api/hello`
-   - `https://your-worker.xxx.workers.dev/test`
-
-4. Return to the Logs page and you will see the incoming requests
-
-#### ✅ Verification:
-
-- [ ] You can see log entries for the requests you just made
-- [ ] You can see information: timestamp, path, status code, duration
-
-#### 📸 Screenshot placeholder:
-
-```
-[Image: Logs page showing request entries]
-```
-
-#### 💡 Tips:
-
-- If you don't see logs, wait a moment and refresh
-- You can filter logs by status code or path
-- If there are errors, you will see the stack trace in the logs
-
----
-
-## Part B — Cloudflare Pages
-
-### B1) Prepare Files for Deployment
+### A1) Prepare Files for Deployment
 
 **Goal:** Understand the file structure to be deployed
 
@@ -292,7 +50,7 @@ A simple HTML page that displays a confirmation message when deployment is succe
 
 ---
 
-### B2) Deploy Pages via GitHub (Recommended)
+### A2) Deploy Pages via GitHub (Recommended)
 
 **Goal:** Deploy a static website by connecting to GitHub
 
@@ -372,7 +130,7 @@ A simple HTML page that displays a confirmation message when deployment is succe
 
 ---
 
-### B3) Deploy Pages via Direct Upload (Alternative)
+### A3) Deploy Pages via Direct Upload (Alternative)
 
 **Use this method if:** You cannot use GitHub or want to upload files directly
 
@@ -401,9 +159,9 @@ A simple HTML page that displays a confirmation message when deployment is succe
 
 ---
 
-## Part C — Zero Trust DNS Security (via Browser DoH)
+## Part B — Zero Trust DNS Security (via Browser DoH)
 
-### C1) Access Zero Trust Dashboard
+### B1) Access Zero Trust Dashboard
 
 **Goal:** Access the Cloudflare Zero Trust Dashboard
 
@@ -414,7 +172,7 @@ A simple HTML page that displays a confirmation message when deployment is succe
    https://one.dash.cloudflare.com/
    ```
 
-2. Log in with the same Cloudflare account used in Part A and B
+2. Log in with your Cloudflare account
 
 3. **If this is your first time:** The system will prompt you to create a Zero Trust organization
    - Set team name: e.g., `my-workshop-org`
@@ -436,7 +194,7 @@ A simple HTML page that displays a confirmation message when deployment is succe
 
 ---
 
-### C2) Create a DNS Location (to get DoH endpoint)
+### B2) Create a DNS Location (to get DoH endpoint)
 
 **Goal:** Create a DNS Location and get the DoH URL for use in your browser
 
@@ -485,7 +243,7 @@ A simple HTML page that displays a confirmation message when deployment is succe
 
 ---
 
-### C3) Create a DNS Policy (Block Malware)
+### B3) Create a DNS Policy (Block Malware)
 
 **Goal:** Create a policy to block malicious websites
 
@@ -538,7 +296,7 @@ A simple HTML page that displays a confirmation message when deployment is succe
 
 ---
 
-### C4) Configure Browser to Use DoH Endpoint
+### B4) Configure Browser to Use DoH Endpoint
 
 **Goal:** Configure your browser to use Cloudflare Gateway DNS instead of regular DNS
 
@@ -628,7 +386,7 @@ A simple HTML page that displays a confirmation message when deployment is succe
 
 ---
 
-### C5) Test Blocking with Test Domains
+### B5) Test Blocking with Test Domains
 
 **Goal:** Verify that the DNS policy is working correctly
 
@@ -694,7 +452,7 @@ sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
 ---
 
-### C6) View DNS Logs
+### B6) View DNS Logs
 
 **Goal:** Verify policy operation through logs
 
@@ -731,19 +489,6 @@ sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
 ## Troubleshooting
 
-### Problem: Worker deployment failed
-
-**Possible causes:**
-- Syntax error in the code
-- Worker name already exists
-
-**Solutions:**
-1. Check the error message displayed
-2. Verify that the code was copied completely
-3. Try using a different Worker name
-
----
-
 ### Problem: Pages deployment failed
 
 **Possible causes:**
@@ -765,7 +510,7 @@ sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
 **Solutions:**
 1. Verify that the DoH URL was copied correctly
-2. Clear DNS cache (see instructions in step C5)
+2. Clear DNS cache (see instructions in step B5)
 3. Wait 2-3 minutes for the policy to propagate
 4. Verify that the policy status is "Active"
 
@@ -786,11 +531,10 @@ sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
 ## 🎉 Summary
 
-After completing this workshop, you will have learned:
+After completing this guide, you will have learned:
 
 | Topic | Skills Acquired |
 |-------|-----------------|
-| **Workers** | Create, edit, deploy, configure variables, view logs |
 | **Pages** | Deploy static websites via GitHub or direct upload |
 | **DNS Security** | Create policies, configure DoH in browser, test blocking, view logs |
 
@@ -798,7 +542,6 @@ After completing this workshop, you will have learned:
 
 ## 📚 Additional Resources
 
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
 - [Cloudflare Zero Trust Documentation](https://developers.cloudflare.com/cloudflare-one/)
 - [DNS Filtering Test Domains](https://developers.cloudflare.com/cloudflare-one/policies/gateway/dns-policies/test-dns-filtering/)
