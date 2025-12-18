@@ -21,7 +21,7 @@ Publish internal applications with Zero Trust Network Access (ZTNA) and Remote B
 
 ### 1.1 Navigate to Access Applications
 
-1. In the Zero Trust Dashboard, click **"Access"** in the left sidebar
+1. In the Zero Trust Dashboard, click **"Access controls"** in the left sidebar
 
 2. Click **"Applications"**
 
@@ -88,7 +88,7 @@ Publish internal applications with Zero Trust Network Access (ZTNA) and Remote B
 
 #### 🔄 Rollback:
 
-1. Go to Access > Applications
+1. Go to Access controls > Applications
 2. Click on the application
 3. Edit or delete the policy as needed
 
@@ -252,7 +252,7 @@ Publish internal applications with Zero Trust Network Access (ZTNA) and Remote B
 
 2. Click **"Logs"**
 
-3. Select the **"Access"** tab
+3. Select **"Access"** from the log type options
 
 ### 6.2 Find Your Log Entry
 

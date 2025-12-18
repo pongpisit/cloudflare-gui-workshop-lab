@@ -107,7 +107,7 @@ Configure DNS Security using Browser DNS over HTTPS (DoH).
 
 2. Click **"Firewall policies"**
 
-3. Click the **"DNS"** tab
+3. Select the **"DNS"** tab
 
 ### 3.2 Add a New Policy
 
@@ -314,7 +314,7 @@ sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 
 3. Click **"Logs"**
 
-4. Select the **"Gateway"** > **"DNS"** tab
+4. Select **"DNS"** from the log type options
 
 ### 6.2 Find Your Log Entry
 
