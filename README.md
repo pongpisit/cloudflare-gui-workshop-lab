@@ -1,22 +1,14 @@
-# Cloudflare GUI Workshop Lab
+# Cloudflare Workshop Lab
 
-**Hands-on Workshop: Cloudflare Workers/Pages and DNS Security via Dashboard**
-
-| Detail | Value |
-|--------|-------|
-| Duration | 4 hours |
-| Format | GUI-only (no CLI installation required) |
-| Level | Beginner to Intermediate |
-| Language | English |
+A step-by-step guide to deploying Cloudflare Workers, Pages, and configuring DNS Security via the Dashboard.
 
 ---
 
 ## 📋 Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Time Schedule](#time-schedule)
-- [Part A: Cloudflare Workers](#part-a--cloudflare-workers-gui-only)
-- [Part B: Cloudflare Pages](#part-b--cloudflare-pages-gui-only)
+- [Part A: Cloudflare Workers](#part-a--cloudflare-workers)
+- [Part B: Cloudflare Pages](#part-b--cloudflare-pages)
 - [Part C: Zero Trust DNS Security](#part-c--zero-trust-dns-security-via-browser-doh)
 - [Troubleshooting](#troubleshooting)
 
@@ -33,29 +25,14 @@
 | **Internet Connection** | Stable connection, able to access `*.cloudflare.com` | ✅ Required |
 | **GitHub Account** | For deploying Pages via GitHub integration | ⭐ Recommended |
 
-### Access Verification (Do This Before the Workshop)
+### Access Verification
 
 1. Open https://dash.cloudflare.com/ → You should be able to log in
 2. Open https://one.dash.cloudflare.com/ → You should see the Zero Trust Dashboard
 
-> ⚠️ **Note:** If you cannot access these, please inform the instructor before the workshop begins.
-
 ---
 
-## Time Schedule
-
-| Time | Topic | Details |
-|------|-------|---------|
-| 0:00 – 0:15 | Introduction | Introductions, access verification |
-| 0:15 – 1:30 | **Part A: Workers** | Create, edit, deploy, variables, logs |
-| 1:30 – 2:00 | **Part B: Pages** | Deploy static website via Dashboard |
-| 2:00 – 2:10 | Break | ☕ |
-| 2:10 – 3:50 | **Part C: DNS Security** | Create policy, configure DoH, test, view logs |
-| 3:50 – 4:00 | Q&A + Summary | Questions, cleanup |
-
----
-
-## Part A — Cloudflare Workers (GUI-only)
+## Part A — Cloudflare Workers
 
 ### A1) Navigate to Workers & Pages
 
@@ -296,7 +273,7 @@ export default {
 
 ---
 
-## Part B — Cloudflare Pages (GUI-only)
+## Part B — Cloudflare Pages
 
 ### B1) Prepare Files for Deployment
 
